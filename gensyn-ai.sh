@@ -134,17 +134,17 @@ EOL
 
 # 查看Rl Swarm日志函数
 function view_rl_swarm_logs() {
-    docker-compose logs -f swarm_node
+    cd /root/rl-swarm && docker-compose logs -f swarm_node
 }
 
 # 查看Web UI日志函数
 function view_web_ui_logs() {
-    docker-compose logs -f fastapi
+    cd /root/rl-swarm && docker-compose logs -f fastapi
 }
 
 # 查看Telemetry日志函数
 function view_telemetry_logs() {
-    docker-compose logs -f otel-collector
+    cd /root/rl-swarm && docker-compose logs -f otel-collector
 }
 
 # 主菜单函数
