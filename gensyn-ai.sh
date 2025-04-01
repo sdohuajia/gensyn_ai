@@ -11,6 +11,13 @@ function install_gensyn_ai_node() {
     # 安装指定的软件包
     sudo apt install -y curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip libleveldb-dev python3 python3-pip
 
+    # 安装 Yarn
+    echo "正在安装 Yarn..."
+    curl -o- -L https://yarnpkg.com/install.sh | sh
+    export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+    source ~/.bashrc
+    echo "Yarn 安装完成"
+    
     # 检测 Docker 是否安装
     if ! command -v docker &> /dev/null
     then
@@ -30,106 +37,17 @@ function install_gensyn_ai_node() {
     git clone https://github.com/gensyn-ai/rl-swarm/
     cd rl-swarm
 
-    # 备份现有的 docker-compose.yaml 文件
-    mv docker-compose.yaml docker-compose.yaml.old
+    # 创建并激活 Python 虚拟环境
+    python3 -m venv .venv
+    source .venv/bin/activate
 
-    # 提示用户选择是否有显卡
-    read -p "您的系统是否有显卡？(y/n): " has_gpu
+    # 在 screen 会话中安装并运行 swarm
+    screen -S swarm -d -m bash -c "./run_rl_swarm.sh"
+    echo "Swarm 已通过 screen 在后台启动，使用 'screen -r swarm' 进入后台进行下一步操作"
 
-    # 根据用户选择创建新的 docker-compose.yaml 文件
-    if [ "$has_gpu" == "y" ]; then
-        cat <<EOL > docker-compose.yaml
-version: '3'
-
-services:
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.120.0
-    ports:
-      - "4317:4317"  # OTLP gRPC
-      - "4318:4318"  # OTLP HTTP
-      - "55679:55679"  # Prometheus metrics (optional)
-    environment:
-      - OTEL_LOG_LEVEL=DEBUG
-
-  swarm_node:
-    image: europe-docker.pkg.dev/gensyn-public-b7d9/public/rl-swarm:v0.0.2
-    command: ./run_hivemind_docker.sh
-    runtime: nvidia  # Enables GPU support; remove if no GPU is available
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - PEER_MULTI_ADDRS=/ip4/38.101.215.13/tcp/30002/p2p/QmQ2gEXoPJg6iMBSUFWGzAabS2VhnzuS782Y637hGjfsRJ
-      - HOST_MULTI_ADDRS=/ip4/0.0.0.0/tcp/38331
-    ports:
-      - "38331:38331"  # Exposes the swarm node's P2P port
-    depends_on:
-      - otel-collector
-
-  fastapi:
-    build:
-      context: .
-      dockerfile: Dockerfile.webserver
-    environment:
-      - OTEL_SERVICE_NAME=rlswarm-fastapi
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - INITIAL_PEERS=/ip4/38.101.215.13/tcp/30002/p2p/QmQ2gEXoPJg6iMBSUFWGzAabS2VhnzuS782Y637hGjfsRJ
-    ports:
-      - "8080:8000"  # Maps port 8080 on the host to 8000 in the container
-    depends_on:
-      - otel-collector
-      - swarm_node
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/healthz"]
-      interval: 30s
-      retries: 3
-EOL
-    else
-        cat <<EOL > docker-compose.yaml
-version: '3'
-
-services:
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.120.0
-    ports:
-      - "4317:4317"  # OTLP gRPC
-      - "4318:4318"  # OTLP HTTP
-      - "55679:55679"  # Prometheus metrics (optional)
-    environment:
-      - OTEL_LOG_LEVEL=DEBUG
-
-  swarm_node:
-    image: europe-docker.pkg.dev/gensyn-public-b7d9/public/rl-swarm:v0.0.2
-    command: ./run_hivemind_docker.sh
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - PEER_MULTI_ADDRS=/ip4/38.101.215.13/tcp/30002/p2p/QmQ2gEXoPJg6iMBSUFWGzAabS2VhnzuS782Y637hGjfsRJ
-      - HOST_MULTI_ADDRS=/ip4/0.0.0.0/tcp/38331
-    ports:
-      - "38331:38331"  # Exposes the swarm node's P2P port
-    depends_on:
-      - otel-collector
-
-  fastapi:
-    build:
-      context: .
-      dockerfile: Dockerfile.webserver
-    environment:
-      - OTEL_SERVICE_NAME=rlswarm-fastapi
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - INITIAL_PEERS=/ip4/38.101.215.13/tcp/30002/p2p/QmQ2gEXoPJg6iMBSUFWGzAabS2VhnzuS782Y637hGjfsRJ
-    ports:
-      - "8080:8000"  # Maps port 8080 on the host to 8000 in the container
-    depends_on:
-      - otel-collector
-      - swarm_node
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/healthz"]
-      interval: 30s
-      retries: 3
-EOL
-    fi
-
-    # 执行 docker compose up --build -d 并显示日志
-    docker compose up --build -d && docker compose logs -f
+    # 提示用户按任意键返回主菜单
+    read -n 1 -s -r -p "按任意键返回主菜单..."
+    main_menu
 }
 
 # 查看Rl Swarm日志函数
