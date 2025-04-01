@@ -3,6 +3,9 @@
 # 脚本保存路径
 SCRIPT_PATH="$HOME/gensyn-ai.sh"
 
+# 设置 USE_CACHE 变量，直接控制是否启用缓存
+USE_CACHE=False  # 这里可以设置为 True 或 False，控制是否启用缓存
+
 # 安装 gensyn-ai 节点
 function install_gensyn_ai_node() {
     # 更新系统并安装必要软件包
@@ -45,13 +48,13 @@ function install_gensyn_ai_node() {
     export OMP_NUM_THREADS=${USER_THREADS:-$DEFAULT_THREADS}
     echo "已设置 OMP_NUM_THREADS=$OMP_NUM_THREADS"
 
-    # 运行 RL Swarm 在后台 screen 会话中
+    # 使用 screen 启动 RL Swarm
     if [ -f "./run_rl_swarm.sh" ]; then
         chmod +x run_rl_swarm.sh
-        screen -S swarm -d -m bash -c "USE_CACHE=False ./run_rl_swarm.sh"
+        screen -S swarm -d -m bash -c "USE_CACHE=$USE_CACHE ./run_rl_swarm.sh"
         echo "Swarm 已在后台运行。使用 'screen -r swarm' 进入后台进行下一步操作。"
     else
-        screen -S swarm -d -m bash -c "USE_CACHE=False python main.py"
+        screen -S swarm -d -m bash -c "USE_CACHE=$USE_CACHE python main.py"
         echo "未找到 run_rl_swarm.sh，已使用 Python 方式运行 Swarm。"
         echo "Swarm 已在后台运行。使用 'screen -r swarm' 进入后台进行下一步操作。"
     fi
