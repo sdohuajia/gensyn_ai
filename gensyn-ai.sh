@@ -48,10 +48,10 @@ function install_gensyn_ai_node() {
     # 运行 RL Swarm 在后台 screen 会话中
     if [ -f "./run_rl_swarm.sh" ]; then
         chmod +x run_rl_swarm.sh
-        screen -S swarm -d -m bash -c "./run_rl_swarm.sh"
+        screen -S swarm -d -m bash -c "USE_CACHE=False ./run_rl_swarm.sh"
         echo "Swarm 已在后台运行。使用 'screen -r swarm' 进入后台进行下一步操作。"
     else
-        screen -S swarm -d -m bash -c "python main.py"
+        screen -S swarm -d -m bash -c "USE_CACHE=False python main.py"
         echo "未找到 run_rl_swarm.sh，已使用 Python 方式运行 Swarm。"
         echo "Swarm 已在后台运行。使用 'screen -r swarm' 进入后台进行下一步操作。"
     fi
