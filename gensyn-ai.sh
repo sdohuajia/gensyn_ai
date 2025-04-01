@@ -35,7 +35,9 @@ function install_gensyn_ai_node() {
     source .venv/bin/activate
 
     # 修复 protobuf 版本冲突（强制降级）
-    pip install "protobuf<5.28.0,>=3.12.2" --force-reinstall
+    echo "正在修复 protobuf 版本冲突..."
+    pip install "protobuf>=3.12.2,<5.28.0" --force-reinstall
+    echo "protobuf 版本已更新"
 
     # 检测 CPU 核心数并设置线程
     CPU_CORES=$(nproc)
