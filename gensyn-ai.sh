@@ -11,7 +11,29 @@ function install_gensyn_ai_node() {
         tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip \
         python3 python3-pip python3.10-venv
 
-    # 安装 Yarn
+    # **安装 nvm**
+    if ! command -v nvm &> /dev/null; then
+        echo "正在安装 NVM..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+        source ~/.bashrc
+        source ~/.profile
+        echo "NVM 安装完成"
+    else
+        echo "NVM 已安装"
+    fi
+
+    # **使用 nvm 安装 Node.js 18**
+    source ~/.bashrc
+    source ~/.profile
+    nvm install 18
+    nvm use 18
+    nvm alias default 18
+
+    # 确保 Node.js 版本正确
+    echo "当前 Node.js 版本：$(node -v)"
+    echo "当前 npm 版本：$(npm -v)"
+
+    # **安装 Yarn**
     echo "正在安装 Yarn..."
     npm install -g yarn
     echo "Yarn 安装完成"
@@ -38,6 +60,10 @@ function install_gensyn_ai_node() {
     echo "正在修复 protobuf 版本冲突..."
     pip install "protobuf>=3.12.2,<5.28.0" --force-reinstall
     echo "protobuf 版本已更新"
+
+    # **安装 Node.js 依赖**
+    rm -rf node_modules package-lock.json yarn.lock
+    yarn install
 
     # 检测 CPU 核心数并设置线程
     CPU_CORES=$(nproc)
