@@ -9,7 +9,7 @@ function install_gensyn_ai_node() {
     sudo apt-get update && sudo apt-get upgrade -y
     sudo apt-get install -y curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf \
         tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip \
-        python3 python3-pip
+        python3 python3-pip python3.10-venv
 
     # 安装 Yarn
     echo "正在安装 Yarn..."
