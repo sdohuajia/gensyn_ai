@@ -9,7 +9,7 @@ function install_gensyn_ai_node() {
     sudo apt-get update && sudo apt-get upgrade -y
     sudo apt-get install -y curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf \
         tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip \
-        python3 python3-pip python3.10-venv
+        python3 python3-pip python3.10-venv xdg-utils
 
     # **安装 nvm**
     if ! command -v nvm &> /dev/null; then
@@ -51,6 +51,14 @@ function install_gensyn_ai_node() {
     # 克隆 GitHub 仓库并进入目录
     git clone https://github.com/gensyn-ai/rl-swarm/ || true
     cd rl-swarm || exit
+
+    # **修改 run_rl_swarm.sh**
+    if [ -f "run_rl_swarm.sh" ]; then
+        sed -i 's|open http://localhost:3000|xdg-open http://localhost:3000 2>/dev/null || echo "Please open http://localhost:3000 in your browser"|' run_rl_swarm.sh
+        echo "已修改 run_rl_swarm.sh"
+    else
+        echo "警告: run_rl_swarm.sh 文件未找到，无法修改"
+    fi
 
     # 创建 Python 虚拟环境
     python3 -m venv .venv
